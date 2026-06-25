@@ -342,7 +342,7 @@ def ventas_eliminar(id):
 @login_required
 def generar_factura(venta_id):
     from app.models import Venta
-    import pdfkit
+    from weasyprint import HTML
     from io import BytesIO
     
     venta = Venta.query.get_or_404(venta_id)
@@ -350,11 +350,8 @@ def generar_factura(venta_id):
     # Renderizar la plantilla HTML
     html = render_template('factura.html', venta=venta)
     
-    # Configurar la ruta de wkhtmltopdf
-    config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
-    
-    # Generar PDF
-    pdf = pdfkit.from_string(html, False, configuration=config)
+    # Generar PDF con WeasyPrint
+    pdf = HTML(string=html).write_pdf()
     
     # Crear respuesta para descargar
     return send_file(
