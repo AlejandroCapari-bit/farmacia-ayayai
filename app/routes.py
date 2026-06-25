@@ -342,20 +342,105 @@ def ventas_eliminar(id):
 @login_required
 def generar_factura(venta_id):
     from app.models import Venta
-    from weasyprint import HTML
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import cm
+    from reportlab.lib.utils import ImageReader
     from io import BytesIO
+    import os
     
     venta = Venta.query.get_or_404(venta_id)
     
-    # Renderizar la plantilla HTML
-    html = render_template('factura.html', venta=venta)
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
     
-    # Generar PDF con WeasyPrint
-    pdf = HTML(string=html).write_pdf()
+    # ============ ENCABEZADO ============
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(2*cm, height - 2*cm, "FARMACIA AYAYAI")
     
-    # Crear respuesta para descargar
+    c.setFont("Helvetica", 10)
+    c.drawString(2*cm, height - 2.8*cm, "Tu farmacia de confianza · NIT: 123456-7")
+    
+    # Línea separadora
+    c.line(2*cm, height - 3.2*cm, width - 2*cm, height - 3.2*cm)
+    
+    # ============ DATOS DE LA FACTURA ============
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(width - 6*cm, height - 2*cm, "FACTURA")
+    c.setFont("Helvetica", 10)
+    c.drawString(width - 6*cm, height - 2.8*cm, f"N° #{venta.id}")
+    
+    # ============ INFORMACIÓN DEL CLIENTE ============
+    y = height - 4.5*cm
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(2*cm, y, "DATOS DEL CLIENTE")
+    y -= 0.6*cm
+    c.setFont("Helvetica", 10)
+    c.drawString(2*cm, y, f"Cliente: {venta.cliente.nombre}")
+    y -= 0.5*cm
+    c.drawString(2*cm, y, f"Teléfono: {venta.cliente.telefono or '—'}")
+    y -= 0.5*cm
+    c.drawString(2*cm, y, f"Email: {venta.cliente.email or '—'}")
+    y -= 0.5*cm
+    c.drawString(2*cm, y, f"Fecha: {venta.fecha.strftime('%d/%m/%Y %H:%M')}")
+    
+    # ============ TABLA DE PRODUCTOS ============
+    y = height - 9*cm
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(2*cm, y, "PRODUCTO")
+    c.drawString(10*cm, y, "CANT.")
+    c.drawString(13*cm, y, "PRECIO")
+    c.drawString(17*cm, y, "SUBTOTAL")
+    y -= 0.4*cm
+    c.line(2*cm, y, width - 2*cm, y)
+    y -= 0.5*cm
+    
+    c.setFont("Helvetica", 9)
+    total = 0
+    for detalle in venta.detalles:
+        # Recortar nombre si es muy largo
+        nombre = detalle.medicamento.nombre[:25] + "..." if len(detalle.medicamento.nombre) > 25 else detalle.medicamento.nombre
+        c.drawString(2*cm, y, nombre)
+        c.drawString(10*cm, y, str(detalle.cantidad))
+        c.drawString(13*cm, y, f"Bs. {detalle.precio_unitario:.2f}")
+        c.drawString(17*cm, y, f"Bs. {detalle.subtotal:.2f}")
+        y -= 0.6*cm
+        
+        # Si la factura es muy larga, crear nueva página
+        if y < 3*cm:
+            c.showPage()
+            y = height - 3*cm
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(2*cm, y, "PRODUCTO")
+            c.drawString(10*cm, y, "CANT.")
+            c.drawString(13*cm, y, "PRECIO")
+            c.drawString(17*cm, y, "SUBTOTAL")
+            y -= 0.5*cm
+            c.setFont("Helvetica", 9)
+    
+    # ============ TOTAL ============
+    y -= 0.5*cm
+    c.line(12*cm, y, width - 2*cm, y)
+    y -= 0.6*cm
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(14*cm, y, f"TOTAL: Bs. {venta.total:.2f}")
+    
+    # ============ PIE DE PÁGINA ============
+    y = 2*cm
+    c.setFont("Helvetica", 8)
+    c.drawString(2*cm, y, "📧 info@ayayai.com")
+    c.drawString(9*cm, y, "📞 (591) 7-123-4567")
+    c.drawString(16*cm, y, "📍 Av. Principal #123 · Bolivia")
+    
+    y = 1.2*cm
+    c.drawString(2*cm, y, "¡Gracias por su compra! · Este documento es un comprobante fiscal válido")
+    
+    c.save()
+    buffer.seek(0)
+    
     return send_file(
-        BytesIO(pdf),
+        buffer,
         as_attachment=True,
         download_name=f'factura_{venta.id}.pdf',
         mimetype='application/pdf'
