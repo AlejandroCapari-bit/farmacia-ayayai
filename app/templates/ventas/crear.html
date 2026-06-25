@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Título -->
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-cart-plus text-blue-600"></i> Nueva Venta
+        </h2>
+        <p class="text-sm text-slate-400 mt-0.5">Registra una nueva transacción en el sistema</p>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6">
+        <form method="POST">
+            <!-- Cliente -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Cliente <span class="text-rose-500">*</span></label>
+                <select name="cliente_id" class="w-full md:w-1/2 px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" required>
+                    <option value="">Seleccione un cliente...</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.id }}">{{ c.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Tabla de medicamentos -->
+            <div class="mb-4">
+                <h4 class="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-capsules text-blue-600"></i> Seleccionar Medicamentos
+                </h4>
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50/80 text-slate-600 font-semibold text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="px-4 py-3 text-left">Medicamento</th>
+                                <th class="px-4 py-3 text-left">Precio</th>
+                                <th class="px-4 py-3 text-left">Stock</th>
+                                <th class="px-4 py-3 text-left">Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in medicamentos %}
+                            <tr class="border-t border-slate-100 hover:bg-slate-50/50 transition">
+                                <td class="px-4 py-3 font-medium text-slate-700">{{ m.nombre }}</td>
+                                <td class="px-4 py-3 text-emerald-600 font-medium">Bs. {{ m.precio }}</td>
+                                <td class="px-4 py-3 text-slate-600">
+                                    {{ m.stock }}
+                                    {% if m.stock <= m.stock_minimo and m.stock > 0 %}
+                                        <span class="ml-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Poco stock</span>
+                                    {% elif m.stock == 0 %}
+                                        <span class="ml-1 text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">Agotado</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input type="number" name="cantidad_{{ m.id }}" class="w-20 px-3 py-1.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" value="0" min="0" max="{{ m.stock }}">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if medicamentos|length == 0 %}
+                <div class="text-center py-6 text-slate-400 text-sm">
+                    <i class="fas fa-box-open mr-2"></i> No hay medicamentos disponibles. <a href="/medicamentos/crear" class="text-blue-600 hover:underline">Agregar uno</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Botones -->
+            <div class="flex flex-wrap gap-3 mt-6 pt-4 border-t border-slate-100">
+                <button type="submit" class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200">
+                    <i class="fas fa-check-circle"></i> Registrar Venta
+                </button>
+                <a href="{{ url_for('main.ventas_listar') }}" class="inline-flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-medium transition">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-receipt text-blue-600"></i> Ventas
+        </h2>
+        <p class="text-sm text-slate-400 mt-0.5">Historial de transacciones</p>
+    </div>
+    <a href="/ventas/crear" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200">
+        <i class="fas fa-plus"></i> Nueva Venta
+    </a>
+</div>
+
+<!-- Tarjetas de estadísticas -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 px-4 py-3 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fas fa-receipt"></i></div>
+        <div>
+            <p class="text-xs text-slate-400">Total ventas</p>
+            <p class="text-lg font-bold text-slate-800">{{ ventas|length }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 px-4 py-3 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fas fa-money-bill-wave"></i></div>
+        <div>
+            <p class="text-xs text-slate-400">Total recaudado</p>
+            <p class="text-lg font-bold text-slate-800">
+                {% set total_recaudado = 0 %}
+                {% for v in ventas %}
+                    {% set total_recaudado = total_recaudado + v.total %}
+                {% endfor %}
+                Bs. {{ "%.2f"|format(total_recaudado) }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Listado en tarjetas -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for v in ventas %}
+    <div class="group bg-white rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-lg hover:border-blue-200 transition-all duration-200 p-4">
+        <div class="flex items-start justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">#{{ v.id }}</span>
+                    <span class="text-xs text-slate-400">{{ v.fecha.strftime('%d/%m/%Y %H:%M') }}</span>
+                </div>
+                <h3 class="font-semibold text-slate-800 mt-1">{{ v.cliente.nombre }}</h3>
+            </div>
+            <span class="text-lg font-bold text-emerald-600">Bs. {{ v.total }}</span>
+        </div>
+
+        <!-- 🆕 LISTA DE PRODUCTOS COMPRADOS -->
+        <div class="mt-2">
+            <p class="text-xs font-semibold text-slate-500 mb-1">Productos:</p>
+            <div class="flex flex-wrap gap-1">
+                {% for detalle in v.detalles %}
+                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
+                    {{ detalle.medicamento.nombre }} ({{ detalle.cantidad }})
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-2 flex items-center justify-between text-sm text-slate-500">
+            <span><i class="fas fa-user text-slate-400 mr-1"></i> {{ v.usuario.username }}</span>
+            <span class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">Completada</span>
+        </div>
+        <div class="flex justify-end gap-2 mt-3 pt-3 border-t border-slate-100">
+            <a href="{{ url_for('main.generar_factura', venta_id=v.id) }}" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm transition font-medium" target="_blank">
+                <i class="fas fa-file-pdf"></i> FACTURA
+            </a>
+            <a href="/ventas/eliminar/{{ v.id }}" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-sm transition font-medium" onclick="return confirm('¿Eliminar venta?')">
+                <i class="fas fa-trash-alt"></i> Eliminar
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if ventas|length == 0 %}
+<div class="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200/60">
+    <i class="fas fa-receipt text-5xl text-slate-300 mb-4"></i>
+    <h3 class="text-lg font-semibold text-slate-600">No hay ventas registradas</h3>
+    <a href="/ventas/crear" class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"><i class="fas fa-plus mr-1"></i> Crear la primera</a>
+</div>
+{% endif %}
+{% endblock %}

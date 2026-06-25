@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-truck text-blue-600"></i> Proveedores
+        </h2>
+        <p class="text-sm text-slate-400 mt-0.5">Empresas que suministran productos</p>
+    </div>
+    <a href="/proveedores/crear" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200">
+        <i class="fas fa-plus"></i> Nuevo Proveedor
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    {% for p in proveedores %}
+    <div class="group bg-white rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-lg hover:border-blue-200 transition-all duration-200 p-4">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-105 transition">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-800 group-hover:text-blue-600 transition">{{ p.nombre }}</h3>
+                    <span class="text-xs font-mono text-slate-400">#{{ p.id }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 space-y-1 text-sm">
+            <p class="text-slate-600"><i class="fas fa-phone text-slate-400 w-5"></i> {{ p.telefono or 'Sin teléfono' }}</p>
+            <p class="text-slate-600"><i class="fas fa-envelope text-slate-400 w-5"></i> {{ p.email or 'Sin email' }}</p>
+            <p class="text-slate-600"><i class="fas fa-map-pin text-slate-400 w-5"></i> {{ p.direccion or 'Sin dirección' }}</p>
+        </div>
+        <div class="flex justify-end gap-2 mt-3 pt-3 border-t border-slate-100">
+            <a href="/proveedores/editar/{{ p.id }}" class="text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-3 py-1.5 rounded-lg text-sm transition font-medium">
+                <i class="fas fa-pen"></i> Editar
+            </a>
+            <a href="/proveedores/eliminar/{{ p.id }}" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-sm transition font-medium" onclick="return confirm('¿Eliminar proveedor?')">
+                <i class="fas fa-trash-alt"></i> Eliminar
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if proveedores|length == 0 %}
+<div class="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200/60">
+    <i class="fas fa-truck text-5xl text-slate-300 mb-4"></i>
+    <h3 class="text-lg font-semibold text-slate-600">No hay proveedores</h3>
+    <a href="/proveedores/crear" class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"><i class="fas fa-plus mr-1"></i> Crear el primero</a>
+</div>
+{% endif %}
+{% endblock %}

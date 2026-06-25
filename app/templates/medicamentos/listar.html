@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Título y acciones -->
+<div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-capsules text-blue-600"></i> Medicamentos
+        </h2>
+        <p class="text-sm text-slate-400 mt-0.5">Gestión completa del stock farmacéutico</p>
+    </div>
+    <a href="/medicamentos/crear" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200">
+        <i class="fas fa-plus"></i> Nuevo Medicamento
+    </a>
+</div>
+
+<!-- Tarjetas de estadísticas rápidas -->
+{% set total = medicamentos|length %}
+{% set con_stock = 0 %}
+{% set stock_bajo = 0 %}
+{% set sin_stock = 0 %}
+
+{% for m in medicamentos %}
+    {% if m.stock > 0 %}
+        {% set con_stock = con_stock + 1 %}
+    {% else %}
+        {% set sin_stock = sin_stock + 1 %}
+    {% endif %}
+    {% if m.stock <= m.stock_minimo and m.stock > 0 %}
+        {% set stock_bajo = stock_bajo + 1 %}
+    {% endif %}
+{% endfor %}
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 px-4 py-3 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600"><i class="fas fa-capsules"></i></div>
+        <div>
+            <p class="text-xs text-slate-400">Total</p>
+            <p class="text-lg font-bold text-slate-800">{{ total }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 px-4 py-3 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fas fa-check-circle"></i></div>
+        <div>
+            <p class="text-xs text-slate-400">Con stock</p>
+            <p class="text-lg font-bold text-slate-800">{{ con_stock }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 px-4 py-3 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600"><i class="fas fa-exclamation-triangle"></i></div>
+        <div>
+            <p class="text-xs text-slate-400">Stock bajo</p>
+            <p class="text-lg font-bold text-slate-800">{{ stock_bajo }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 px-4 py-3 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600"><i class="fas fa-times-circle"></i></div>
+        <div>
+            <p class="text-xs text-slate-400">Sin stock</p>
+            <p class="text-lg font-bold text-slate-800">{{ sin_stock }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Listado en tarjetas -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    {% for m in medicamentos %}
+    <div class="group bg-white rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-lg hover:border-blue-200 transition-all duration-200 overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-start">
+            <div>
+                <h3 class="font-semibold text-slate-800 group-hover:text-blue-600 transition">{{ m.nombre }}</h3>
+                <span class="text-xs text-slate-400">{{ m.categoria.nombre }}</span>
+            </div>
+            <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded-md">#{{ m.id }}</span>
+        </div>
+        <div class="px-4 py-3 space-y-2">
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Precio</span>
+                <span class="font-semibold text-emerald-600">Bs. {{ m.precio }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Stock</span>
+                <span class="font-semibold {% if m.stock <= m.stock_minimo %}text-rose-600{% else %}text-slate-700{% endif %}">
+                    {{ m.stock }}
+                    {% if m.stock <= m.stock_minimo and m.stock > 0 %}
+                        <span class="ml-1 text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">Bajo</span>
+                    {% elif m.stock == 0 %}
+                        <span class="ml-1 text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">Agotado</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500">Proveedor</span>
+                <span class="text-slate-700">{{ m.proveedor.nombre }}</span>
+            </div>
+        </div>
+        <div class="px-4 py-3 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-2">
+            <a href="/medicamentos/editar/{{ m.id }}" class="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-3 py-1.5 rounded-lg text-sm transition font-medium">
+                <i class="fas fa-pen"></i> Editar
+            </a>
+            <a href="/medicamentos/eliminar/{{ m.id }}" class="inline-flex items-center gap-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-sm transition font-medium" onclick="return confirm('¿Eliminar este medicamento?')">
+                <i class="fas fa-trash-alt"></i> Eliminar
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if medicamentos|length == 0 %}
+<div class="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200/60">
+    <i class="fas fa-box-open text-5xl text-slate-300 mb-4"></i>
+    <h3 class="text-lg font-semibold text-slate-600">No hay medicamentos registrados</h3>
+    <p class="text-sm text-slate-400 mt-1">Comienza agregando el primero.</p>
+    <a href="/medicamentos/crear" class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"><i class="fas fa-plus mr-1"></i> Crear medicamento</a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-users text-blue-600"></i> Clientes
+        </h2>
+        <p class="text-sm text-slate-400 mt-0.5">Personas que compran en la farmacia</p>
+    </div>
+    <a href="/clientes/crear" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200">
+        <i class="fas fa-plus"></i> Nuevo Cliente
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    {% for c in clientes %}
+    <div class="group bg-white rounded-2xl shadow-sm border border-slate-200/60 hover:shadow-lg hover:border-blue-200 transition-all duration-200 p-4">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-700 font-bold group-hover:scale-105 transition">
+                    {{ c.nombre[0]|upper }}
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-800 group-hover:text-blue-600 transition">{{ c.nombre }}</h3>
+                    <span class="text-xs font-mono text-slate-400">#{{ c.id }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3 space-y-1 text-sm">
+            <p class="text-slate-600"><i class="fas fa-phone text-slate-400 w-5"></i> {{ c.telefono or 'Sin teléfono' }}</p>
+            <p class="text-slate-600"><i class="fas fa-envelope text-slate-400 w-5"></i> {{ c.email or 'Sin email' }}</p>
+            <p class="text-slate-600"><i class="fas fa-map-pin text-slate-400 w-5"></i> {{ c.direccion or 'Sin dirección' }}</p>
+        </div>
+        <div class="flex justify-end gap-2 mt-3 pt-3 border-t border-slate-100">
+            <a href="/clientes/editar/{{ c.id }}" class="text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-3 py-1.5 rounded-lg text-sm transition font-medium">
+                <i class="fas fa-pen"></i> Editar
+            </a>
+            <a href="/clientes/eliminar/{{ c.id }}" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-sm transition font-medium" onclick="return confirm('¿Eliminar cliente?')">
+                <i class="fas fa-trash-alt"></i> Eliminar
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if clientes|length == 0 %}
+<div class="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200/60">
+    <i class="fas fa-users text-5xl text-slate-300 mb-4"></i>
+    <h3 class="text-lg font-semibold text-slate-600">No hay clientes registrados</h3>
+    <a href="/clientes/crear" class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"><i class="fas fa-plus mr-1"></i> Crear el primero</a>
+</div>
+{% endif %}
+{% endblock %}

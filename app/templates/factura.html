@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura #{{ venta.id }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+            background: #ffffff;
+            color: #1e1e1e;
+            padding: 30px;
+            font-size: 13px;
+        }
+        .invoice {
+            max-width: 780px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 35px 40px 30px 40px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 18px;
+            margin-bottom: 22px;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #000000;
+            letter-spacing: 1px;
+        }
+        .header .brand {
+            background: #000000;
+            color: #ffffff;
+            padding: 6px 18px;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 1px;
+            border-radius: 2px;
+        }
+        .header .sub {
+            font-size: 11px;
+            color: #555555;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 30px;
+            margin-bottom: 22px;
+            background: #f6f6f6;
+            padding: 14px 18px;
+            border: 1px solid #dddddd;
+        }
+        .info-grid p { margin: 3px 0; }
+        .info-grid strong { color: #000000; }
+        .info-grid .label { color: #555555; font-weight: 400; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0 22px 0;
+        }
+        th {
+            background: #f0f0f0;
+            color: #000000;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 8px;
+            text-align: left;
+            border: 1px solid #cccccc;
+        }
+        td {
+            padding: 10px 8px;
+            border: 1px solid #cccccc;
+            color: #222222;
+        }
+        .total-row {
+            font-weight: 700;
+            font-size: 15px;
+            background: #f6f6f6;
+        }
+        .total-row td {
+            border: 1px solid #cccccc;
+            padding: 12px 8px;
+        }
+        .footer {
+            margin-top: 25px;
+            padding-top: 16px;
+            border-top: 2px solid #000000;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #555555;
+        }
+        .badge {
+            display: inline-block;
+            background: #000000;
+            color: #ffffff;
+            padding: 2px 14px;
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 2px;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .fw-700 { font-weight: 700; }
+        .fs-12 { font-size: 12px; }
+        .gray { color: #555555; }
+
+        @media print {
+            body { padding: 10px; background: #ffffff; }
+            .invoice { border: 1px solid #aaaaaa; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="invoice">
+
+    <!-- ENCABEZADO -->
+    <div class="header">
+        <div>
+            <h1>💊 FARMACIA AYAYAI</h1>
+            <div class="sub">Tu farmacia de confianza · NIT: 123456-7</div>
+        </div>
+        <div class="brand">FACTURA</div>
+    </div>
+
+    <!-- INFORMACIÓN -->
+    <div class="info-grid">
+        <div>
+            <p><span class="label">Factura N°</span> <strong>#{{ venta.id }}</strong></p>
+            <p><span class="label">Fecha:</span> <strong>{{ venta.fecha.strftime('%d/%m/%Y') }}</strong></p>
+            <p><span class="label">Hora:</span> <strong>{{ venta.fecha.strftime('%H:%M') }}</strong></p>
+        </div>
+        <div>
+            <p><span class="label">Cliente:</span> <strong>{{ venta.cliente.nombre }}</strong></p>
+            <p><span class="label">Teléfono:</span> <strong>{{ venta.cliente.telefono or '—' }}</strong></p>
+            <p><span class="label">Email:</span> <strong>{{ venta.cliente.email or '—' }}</strong></p>
+        </div>
+    </div>
+
+    <!-- TABLA DE PRODUCTOS -->
+    <table>
+        <thead>
+            <tr>
+                <th style="width:50%;">Producto</th>
+                <th style="width:15%;" class="text-center">Cantidad</th>
+                <th style="width:20%;" class="text-right">Precio</th>
+                <th style="width:20%;" class="text-right">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in venta.detalles %}
+            <tr>
+                <td>{{ detalle.medicamento.nombre }}</td>
+                <td class="text-center">{{ detalle.cantidad }}</td>
+                <td class="text-right">Bs. {{ "%.2f"|format(detalle.precio_unitario) }}</td>
+                <td class="text-right">Bs. {{ "%.2f"|format(detalle.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="3" class="text-right fw-700">TOTAL</td>
+                <td class="text-right fw-700">Bs. {{ "%.2f"|format(venta.total) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- ESTADO Y DETALLES -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+        <span class="badge">✅ Pagado</span>
+        <span class="fs-12 gray">Factura generada automáticamente</span>
+    </div>
+
+    <!-- PIE DE PÁGINA -->
+    <div class="footer">
+        <span>📧 info@ayayai.com</span>
+        <span>📞 (591) 7-123-4567</span>
+        <span>📍 Av. Principal #123 · Bolivia</span>
+    </div>
+
+    <!-- MENSAJE FINAL -->
+    <div style="margin-top:12px; text-align:center; font-size:10px; color:#888888; border-top:1px solid #dddddd; padding-top:10px;">
+        ¡Gracias por su compra! · Este documento es un comprobante fiscal válido
+    </div>
+
+</div>
+
+</body>
+</html>
